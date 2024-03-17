@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import UserProxy, PasswordChangeDate
-from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+
+from .models import *
 
 
 class PasswordChangeDateInline(admin.StackedInline):
@@ -24,5 +24,22 @@ class UserProxyAdmin(UserAdmin):
     get_last_password_change_date.short_description = 'Дата изменения пароля'
 
 
+class AccessAdmin(admin.ModelAdmin):
+    filter_horizontal = ('user', 'id_file', 'access_type')
+
+
+# admin.site.unregister(Group)  # Сначала отключаем стандартную модель Group
+
+
 admin.site.unregister(User)
 admin.site.register(UserProxy, UserProxyAdmin)
+admin.site.register(FileType)
+admin.site.register(Place)
+admin.site.register(AccessType)
+admin.site.register(Files)
+admin.site.register(Access)
+admin.site.register(Dashboards)
+admin.site.register(Charts)
+admin.site.register(Comments)
+admin.site.register(ReadComments)
+admin.site.register(Feedback)
