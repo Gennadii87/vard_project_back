@@ -133,6 +133,7 @@ class Dashboards(models.Model):
 
 
 class Comments(models.Model):
+    file_id = models.ForeignKey(Files, on_delete=models.CASCADE)
     chart_id = models.ForeignKey(Charts, on_delete=models.CASCADE)
     user_id = models.ForeignKey(UserProxy, on_delete=models.CASCADE)
     data_send = models.DateTimeField(default=timezone.now)
