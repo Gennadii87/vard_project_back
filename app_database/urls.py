@@ -6,8 +6,10 @@ from drf_yasg import openapi
 
 
 router = DefaultRouter()
-router.register(r'registration_user', views.UserCreateViewlet, basename='registration_user')
-router.register(r'users', views.UsersListViewSet, basename='users')
+router.register(r'registration_user', views.UserCreateViewlet, basename='registration')
+router.register(r'users_list', views.UsersListViewSet, basename='user')
+router.register(r'auth-login', views.CustomAuthToken, basename='auth-login')
+
 
 schema_view = get_schema_view(
     openapi.Info(

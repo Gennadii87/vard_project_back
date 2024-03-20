@@ -16,7 +16,7 @@ class UserProxyAdmin(UserAdmin):
 
     def get_last_password_change_date(self, obj):
         try:
-            last_password_change = obj.passwordchangedate.date_password_changed
+            last_password_change = obj.password_change_date.date_password_changed
         except ObjectDoesNotExist:
             return None
         return last_password_change

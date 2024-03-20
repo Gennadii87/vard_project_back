@@ -22,3 +22,10 @@ def update_password_change_date(sender, instance, created, **kwargs):
             password_change_date.date_password_changed = timezone.now()
             password_change_date.change_type = "changed"
             password_change_date.save()
+
+
+# @receiver(post_save, sender=UserProxy)
+# def set_owner(sender, instance, created, **kwargs):
+#     if created:
+#         instance.owner = instance
+#         instance.save()

@@ -23,8 +23,8 @@ class PasswordChangeDate(models.Model):
     )
 
     objects = None
-    user = models.OneToOneField(UserProxy, on_delete=models.CASCADE)
-    date_password_changed = models.DateTimeField(auto_now=True, null=True, blank=True)
+    user = models.OneToOneField(UserProxy, on_delete=models.CASCADE, related_name='password_change_date')
+    date_password_changed = models.DateTimeField(auto_now=True, null=True, blank=True, )
     change_type = models.CharField(max_length=10, choices=CHANGE_TYPE_CHOICES, default='created', editable=False)
 
     def __str__(self) -> str:
