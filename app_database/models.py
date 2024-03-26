@@ -3,10 +3,11 @@ from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 
-'''Создаем прокси пользователя что бы расширить стандартную модель'''
-
 
 class UserProxy(User):
+
+    """Создаем прокси пользователя, что бы расширить стандартную модель"""
+
     class Meta:
         proxy = True
         verbose_name = 'User'
@@ -24,7 +25,7 @@ class PasswordChangeDate(models.Model):
 
     objects = None
     user = models.OneToOneField(UserProxy, on_delete=models.CASCADE, related_name='password_change_date')
-    date_password_changed = models.DateTimeField(auto_now=True, null=True, blank=True, )
+    date_password_changed = models.DateTimeField(auto_now=True, null=True, blank=True)
     change_type = models.CharField(max_length=10, choices=CHANGE_TYPE_CHOICES, default='created', editable=False)
 
     def __str__(self) -> str:
@@ -39,49 +40,24 @@ class PasswordChangeDate(models.Model):
                              f'пользователя: <span style="color: red; font-size: 14px;">{self.user}</span>')
 
 
-class AccessType(models.Model):
-    ACC_TYPE_CHOICES = (
-        ('READER', 'READER'),
-        ('OWNER', 'OWNER'),
-        ('COMMENTATOR', 'COMMENTATOR'),
-        ('EDITOR', 'EDITOR'),
-    )
-    access_typy = models.CharField(choices=ACC_TYPE_CHOICES, max_length=20, unique=True, verbose_name='Access type')
+class File(models.Model):
 
-    def __str__(self):
-        return self.access_typy
-
-
-class Place(models.Model):
-    PLACE_TYPE_CHOICES = (
-        ('CM', 'Community'),
-        ('MF', 'My Files'),
-        ('BP', 'Best Practices'),
-    )
-    place_type = models.CharField(choices=PLACE_TYPE_CHOICES, max_length=10, unique=True)
-
-    def __str__(self):
-        return self.get_place_type_display()
-
-
-class FileType(models.Model):
     FILE_TYPE_CHOICES = (
         ('CSV', 'CSV'),
         ('JSON', 'JSON'),
         ('Excel', 'Excel'),
         ('PDF', 'PDF'),
-        ('OTHER', '····')
     )
-    file_type = models.CharField(choices=FILE_TYPE_CHOICES, max_length=10, unique=True, default='OTHER')
 
-    def __str__(self):
-        return self.file_type
+    PLACE_TYPE_CHOICES = (
+        ('CM', 'Community'),
+        ('MF', 'My Files'),
+        ('BP', 'Best Practices'),
+    )
 
-
-class Files(models.Model):
     user_id = models.ForeignKey(UserProxy, on_delete=models.CASCADE)
-    place_id = models.ForeignKey(Place, on_delete=models.CASCADE)
-    type_id = models.ForeignKey(FileType, on_delete=models.CASCADE)
+    place_id = models.CharField(choices=PLACE_TYPE_CHOICES, max_length=10)
+    type_id = models.CharField(choices=FILE_TYPE_CHOICES, max_length=10)
     data_creation = models.DateTimeField(default=timezone.now)
     data_change = models.DateTimeField(blank=True, null=True)
     data_delete = models.DateTimeField(blank=True, null=True)
@@ -94,9 +70,17 @@ class Files(models.Model):
 
 
 class Access(models.Model):
-    id_file = models.ForeignKey(Files, on_delete=models.CASCADE)
+
+    ACC_TYPE_CHOICES = (
+        ('READER', 'READER'),
+        ('OWNER', 'OWNER'),
+        ('COMMENTATOR', 'COMMENTATOR'),
+        ('EDITOR', 'EDITOR'),
+    )
+
+    id_file = models.ForeignKey(File, on_delete=models.CASCADE)
     user_id = models.ForeignKey(UserProxy, on_delete=models.CASCADE)
-    access_type_id = models.ForeignKey(AccessType, on_delete=models.CASCADE)
+    access_type_id = models.CharField(choices=ACC_TYPE_CHOICES, max_length=20, verbose_name='Access type')
     data_access_open = models.DateTimeField(default=timezone.now)
     data_access_close = models.DateTimeField(blank=True, null=True)
 
@@ -114,7 +98,7 @@ class Feedback(models.Model):
         return f'{self.pk}: {self.theme} - {self.user_id}'
 
 
-class Charts(models.Model):
+class Chart(models.Model):
     user_id = models.ForeignKey(UserProxy, on_delete=models.CASCADE)
     data_creation = models.DateTimeField(default=timezone.now)
     data_change = models.DateTimeField(blank=True, null=True)
@@ -123,7 +107,7 @@ class Charts(models.Model):
         return f'{self.pk} - {self.user_id}'
 
 
-class Dashboards(models.Model):
+class Dashboard(models.Model):
     user_id = models.ForeignKey(UserProxy, on_delete=models.CASCADE)
     data_creation = models.DateTimeField(default=timezone.now)
     data_change = models.DateTimeField(blank=True, null=True)
@@ -132,9 +116,9 @@ class Dashboards(models.Model):
         return f'{self.pk} - {self.user_id}'
 
 
-class Comments(models.Model):
-    file_id = models.ForeignKey(Files, on_delete=models.CASCADE)
-    chart_id = models.ForeignKey(Charts, on_delete=models.CASCADE)
+class Comment(models.Model):
+    file_id = models.ForeignKey(File, on_delete=models.CASCADE)
+    chart_id = models.ForeignKey(Chart, on_delete=models.CASCADE)
     user_id = models.ForeignKey(UserProxy, on_delete=models.CASCADE)
     data_send = models.DateTimeField(default=timezone.now)
     data_remove = models.DateTimeField(blank=True, null=True)
@@ -145,9 +129,9 @@ class Comments(models.Model):
         return f'{self.user_id} - {self.chart_id}'
 
 
-class ReadComments(models.Model):
+class ReadComment(models.Model):
     user_id = models.ForeignKey(UserProxy, on_delete=models.CASCADE)
-    comment_id = models.ForeignKey(Comments, on_delete=models.CASCADE)
+    comment_id = models.ForeignKey(Comment, on_delete=models.CASCADE)
     data_reading = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

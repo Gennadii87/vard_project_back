@@ -25,7 +25,20 @@ def update_password_change_date(sender, instance, created, **kwargs):
 
 
 # @receiver(post_save, sender=UserProxy)
-# def set_owner(sender, instance, created, **kwargs):
+# def update_password_change_date(sender, instance, created, **kwargs):
 #     if created:
-#         instance.owner = instance
-#         instance.save()
+#         PasswordChangeDate.objects.create(user=instance, date_password_changed=timezone.now(), change_type="created")
+#     else:
+#         if 'password' in instance.__dict__:
+#             old_password_hash = instance._password
+#             new_password_hash = make_password(instance.password)
+#             if old_password_hash != new_password_hash:
+#                 try:
+#                     password_change_date = PasswordChangeDate.objects.get(user=instance)
+#                 except ObjectDoesNotExist:
+#                     PasswordChangeDate.objects.create(user=instance, date_password_changed=timezone.now(), change_type="changed")
+#                 else:
+#                     password_change_date.date_password_changed = timezone.now()
+#                     password_change_date.change_type = "changed"
+#                     password_change_date.save()
+
