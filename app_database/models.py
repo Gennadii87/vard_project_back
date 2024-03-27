@@ -42,6 +42,7 @@ class PasswordChangeDate(models.Model):
 
 class File(models.Model):
 
+    objects = None
     FILE_TYPE_CHOICES = (
         ('CSV', 'CSV'),
         ('JSON', 'JSON'),

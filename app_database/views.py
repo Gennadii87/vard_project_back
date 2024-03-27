@@ -1,3 +1,5 @@
+from django.http import Http404
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions
@@ -37,7 +39,7 @@ class LoginAuthTokenSet(viewsets.ViewSet):
                 login(request, user)
                 return Response({'token': f'Token {token.key}', 'id': user.id}, status=status.HTTP_200_OK)
             else:
-                return Response({'error': 'Неверные учетные данные'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -60,7 +62,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return [IsNotAuthenticated()]  # Разрешаем доступ без аутентификации только при создании пользователя
         elif self.action == 'list':
-            return [permissions.AllowAny(),]  # Разрешаем доступ без аутентификации к списку пользователей
+            return [permissions.AllowAny(),]
         return super().get_permissions()
 
     def list(self, request, **kwargs):
@@ -80,10 +82,10 @@ class UserViewSet(viewsets.ModelViewSet):
                 return UserDetailSerializer
         return self.serializer_class
 
-    # @swagger_auto_schema(
-    #     request_body=UserSerializer,
-    #     responses={status.HTTP_201_CREATED: openapi.Response('User created', schema=user_response_schema)},
-    # )
+    @swagger_auto_schema(
+        request_body=UserSerializer,
+        responses={status.HTTP_201_CREATED: openapi.Response('User created', schema=user_response_schema)},
+    )
     def create(self, request, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -99,50 +101,77 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
-# class UserProfileView(viewsets.ModelViewSet):
-#     queryset = UserProxy.objects.all()
-#     serializer_class = UserSerializeProfile
-#     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
-#
-#     def retrieve(self, request, *args, **kwargs):
-#         instance = self.get_object()
-#         # Проверяем, что запрос делает текущий пользователь
-#         if instance == request.user:
-#             serializer = self.get_serializer(instance)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         else:
-#             return Response({"error": "Недостаточно прав для доступа к этому ресурсу"}, status=status.HTTP_403_FORBIDDEN)
+class UserAccountViewSet(viewsets.ViewSet):
+    serializer_class = UserDetailSerializer
+    queryset = UserProxy.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
-# class UserProfileViewSet(viewsets.ModelViewSet):
-#     queryset = UserProxy.objects.none()
-#     serializer_class = UserSerializeProfile
-#     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+    def get_object(self):
+        user_id = self.kwargs.get('pk')
+        if self.request.user.is_authenticated:
+            try:
+                user = self.queryset.get(id=user_id)
+                return user
+            except UserProxy.DoesNotExist:
+                raise Http404('User does not exist')
+        else:
+            raise Http404('User does not exist')
 
-# def retrieve(self, request, *args, **kwargs):
-#     # Получение текущего пользователя из запроса
-#     user = request.user
-#
-#     # Проверка, что пользователь аутентифицирован
-#     if user.is_authenticated:
-#         # Проверка, что пользователь имеет доступ только к своему профилю
-#         if user.pk == kwargs['pk']:
-#             instance = self.get_object()
-#             serializer = self.get_serializer(instance)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         else:
-#             return Response({"error": "Недостаточно прав для доступа к этому ресурсу"}, status=status.HTTP_403_FORBIDDEN)
-#     else:
-#         return Response({"error": "Пользователь не аутентифицирован"}, status=status.HTTP_401_UNAUTHORIZED)
+    def list(self, request, *args, **kwargs):
+        instance = request.user.pk
+        user = self.queryset.get(pk=instance)
+        serializer = self.serializer_class(user)
+        # Проверяем совпадение идентификаторов текущего пользователя и пользователя из запроса
+        if instance == user.pk:
+            return Response(serializer.data, status=status.HTTP_200_OK)  # Если совпадают, возвращаем данные
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_403_FORBIDDEN)
 
-# def get_queryset(self):
-#     user = self.request.user
-#     queryset = UserProxy.objects.filter(id=user.id)
-#     return queryset.order_by('id')
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            user = self.get_object()
+        except Http404:
+            # Если объект не существует, возвращаем ответ с кодом статуса 403 Forbidden
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_403_FORBIDDEN)
 
-# def retrieve(self, request, *args, **kwargs):
-#     instance = self.get_object()
-#     serializer = self.get_serializer(instance)
-#     return Response(serializer.data, status=status.HTTP_200_OK)
+        # Проверка, что пользователь имеет доступ только к своему профилю
+        if user.pk == self.request.user.pk:
+            serializer = self.serializer_class(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_403_FORBIDDEN)
+
+    @swagger_auto_schema(
+        request_body=UserDetailSerializer,
+        responses={status.HTTP_200_OK: openapi.Response('User update')},
+    )
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        request_body=UserDetailSerializer,
+        responses={status.HTTP_200_OK: openapi.Response('User update')},
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_204_NO_CONTENT: openapi.Response('content removed')},
+    )
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Проверяем, что пользователь имеет доступ только к своему профилю
+        if instance.pk == self.request.user.pk:
+            instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_403_FORBIDDEN)
+
 
 class FileViewSet(viewsets.ModelViewSet):
     queryset = File.objects.all().order_by('id')
