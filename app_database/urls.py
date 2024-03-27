@@ -6,10 +6,9 @@ from drf_yasg import openapi
 
 
 router = DefaultRouter()
-# router.register(r'users_list', views.UsersListViewSet, basename='user-detail')
+
 router.register(r'auth-login', views.LoginAuthTokenSet, basename='auth-login')
 router.register(r'account', views.UserAccountViewSet, basename='account')
-# router.register(r'account/<int>/update_user', views.UserAccountViewSet, basename='account')
 router.register(r'user', views.UserViewSet)
 router.register(r'file', views.FileViewSet)
 router.register(r'access', views.AccessViewSet)
