@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
-from .models import UserProxy, PasswordChangeDate
+from .models import UserProxy, PasswordChangeDate, File
 
 
 @receiver(post_save, sender=UserProxy)
@@ -42,3 +42,10 @@ def update_password_change_date(sender, instance, created, **kwargs):
 #                     password_change_date.change_type = "changed"
 #                     password_change_date.save()
 
+# @receiver(post_save, sender=File)
+# def update_link(sender, instance, created, **kwargs):
+#     if created:
+#         # Здесь вы можете установить значение для поля link, основываясь на URL-адресе файла.
+#         # Например, вы можете использовать URL-адрес для доступа к файлу.
+#         instance.link = f'/media/{instance.id}'
+#         instance.save()

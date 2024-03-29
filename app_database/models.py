@@ -63,8 +63,10 @@ class File(models.Model):
     data_change = models.DateTimeField(blank=True, null=True)
     data_delete = models.DateTimeField(blank=True, null=True)
     name = models.CharField(max_length=255)
-    link = models.CharField(max_length=255)
+    link = models.FileField(upload_to='media/', blank=True, null=True)
     publish = models.IntegerField(choices=[(0, 'No'), (1, 'Yes')], default=0)
+
+
 
     def __str__(self):
         return f'{self.name}.{self.type_id}'

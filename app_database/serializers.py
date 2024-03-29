@@ -1,6 +1,10 @@
+import os
+
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from rest_framework import serializers
 from .models import UserProxy, PasswordChangeDate, File, Access, Feedback, Chart, Dashboard, Comment, ReadComment
-
+from django.urls import reverse
 
 class PasswordChangeDateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -73,11 +77,47 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
 class FileSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='file-detail')
+    download_url = serializers.SerializerMethodField()
 
     class Meta:
         model = File
         fields = '__all__'
 
+    def create(self, validated_data):
+        instance = super().create(validated_data)  # Создаем экземпляр модели
+        return instance
+
+    # def create(self, validated_data):
+    #     instance = super().create(validated_data)
+    #
+    #     file_field = instance.link
+    #
+    #     if file_field:
+    #         file_extension = os.path.splitext(file_field.name)[1]
+    #         new_file_name = f"{validated_data['name']}{file_extension}"
+    #
+    #         old_file_path = file_field.path
+    #         new_file_path = os.path.join(os.path.dirname(old_file_path), new_file_name)
+    #
+    #         # Переименовываем файл
+    #         os.rename(old_file_path, new_file_path)
+    #
+    #         # Создаем новый файл ContentFile
+    #         with open(new_file_path, 'rb') as new_file:
+    #             content = new_file.read()
+    #             new_content_file = ContentFile(content)
+    #
+    #         # Обновляем поле link в модели с новым именем файла
+    #         instance.link.save(new_file_name, new_content_file, save=True)
+
+        return instance
+    def get_download_url(self, obj):
+        request = self.context.get('request')
+        if obj.link:
+            file_id = obj.id
+            download_url = request.build_absolute_uri(reverse('file-download', args=[file_id]))
+            return download_url
+        return None
 
 class AccessSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='access-detail')

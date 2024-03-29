@@ -1,12 +1,16 @@
-from django.http import Http404
+import os
+
+from django.http import Http404, FileResponse
 
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions
 from rest_framework.authtoken.models import Token
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+
 
 from .swagger_schema_doc import user_response_schema
 from .models import UserProxy, File, Access, Feedback, Chart, Dashboard, Comment, ReadComment
@@ -176,6 +180,21 @@ class UserAccountViewSet(viewsets.ViewSet):
 class FileViewSet(viewsets.ModelViewSet):
     queryset = File.objects.all().order_by('id')
     serializer_class = FileSerializer
+
+    def handle_exception(self, exc):
+        # Обработка ошибки и формирование ответа
+        error_message = str(exc)
+        return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['GET'])
+    def download(self, request, pk=None):
+        file_obj = self.get_object()
+        file_path = file_obj.link.path  # Получаем путь к файлу
+        if os.path.exists(file_path):  # Проверяем, существует ли файл
+            # Возвращаем  ответ с использованием Django FileResponse
+            return FileResponse(open(file_path, 'rb'), as_attachment=True)
+        else:
+            return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class AccessViewSet(viewsets.ModelViewSet):
