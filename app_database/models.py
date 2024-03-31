@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils.safestring import mark_safe
 from django.utils import timezone
 
 
@@ -30,14 +29,9 @@ class PasswordChangeDate(models.Model):
 
     def __str__(self) -> str:
         if self.change_type == 'created':
-            return mark_safe(
-                f'пароль создан: <span style="color: green; font-size: 14px;">'
-                f'{self.date_password_changed.strftime("%Y-%m-%d %H:%M:%S")}</span> '
-                f'пользователя: <span style="color: red; font-size: 14px;">{self.user}</span>')
+            return f'created: {self.date_password_changed.strftime("%Y-%m-%d %H:%M:%S")}'
         elif self.change_type == 'changed':
-            return mark_safe(f'пароль изменен: <span style="color: blue; font-size: 14px;">'
-                             f'{self.date_password_changed.strftime("%Y-%m-%d %H:%M:%S")}</span> '
-                             f'пользователя: <span style="color: red; font-size: 14px;">{self.user}</span>')
+            return f'changed: {self.date_password_changed.strftime("%Y-%m-%d %H:%M:%S")}'
 
 
 class File(models.Model):
@@ -65,8 +59,6 @@ class File(models.Model):
     name = models.CharField(max_length=255)
     link = models.FileField(upload_to='media/', blank=True, null=True)
     publish = models.IntegerField(choices=[(0, 'No'), (1, 'Yes')], default=0)
-
-
 
     def __str__(self):
         return f'{self.name}.{self.type_id}'

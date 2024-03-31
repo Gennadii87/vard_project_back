@@ -1,5 +1,3 @@
-import os
-
 from django.http import Http404, FileResponse
 
 from rest_framework import status
@@ -12,7 +10,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 
-from .swagger_schema_doc import user_response_schema
+from .swagger_schema_doc import user_response_schema, file_response_schema
 from .models import UserProxy, File, Access, Feedback, Chart, Dashboard, Comment, ReadComment
 from .serializers import FileSerializer, UserSerializer, AccessSerializer, FeedbackSerializer, ChartSerializer, \
     DashboardSerializer, CommentSerializer, ReadCommentSerializer, UserDetailSerializer, LoginAuthTokenSerializer
@@ -181,20 +179,31 @@ class FileViewSet(viewsets.ModelViewSet):
     queryset = File.objects.all().order_by('id')
     serializer_class = FileSerializer
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        if queryset.exists():
+            serializer = self.serializer_class(queryset, many=True, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            serializer_fields = self.serializer_class().get_fields()
+            fields = {}
+            for field_name, field in serializer_fields.items():
+                field_type = field.__class__.__name__
+                fields[field_name] = field_type
+            return Response(file_response_schema.example, status=status.HTTP_204_NO_CONTENT)
+
     def handle_exception(self, exc):
-        # Обработка ошибки и формирование ответа
         error_message = str(exc)
         return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['GET'])
     def download(self, request, pk=None):
-        file_obj = self.get_object()
-        file_path = file_obj.link.path  # Получаем путь к файлу
-        if os.path.exists(file_path):  # Проверяем, существует ли файл
-            # Возвращаем  ответ с использованием Django FileResponse
-            return FileResponse(open(file_path, 'rb'), as_attachment=True)
-        else:
+        try:
+            file_obj = self.get_object()
+        except Http404:
             return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+        file_path = file_obj.link.path  # Получаем путь к файлу
+        return FileResponse(open(file_path, 'rb'), as_attachment=True)
 
 
 class AccessViewSet(viewsets.ModelViewSet):
