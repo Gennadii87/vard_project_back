@@ -1,0 +1,9 @@
+export const getDashboardsUrl = (slug: string = '') => `/${slug}`;
+export const getAuthUrl = (slug: string = '') => `/auth${slug}`;
+export const getLoginUrl = (slug: string = '') => `/login${slug}`;
+export const getConnectionsUrl = (slug: string = '') => `/connections${slug}`;
+export const getFilesUrl = (slug: string = '') => `/files${slug}`;
+export const getChartsUrl = (slug: string = '') => `/charts${slug}`;
+export const getWikiUrl = (slug: string = '') => `/wiki${slug}`;
+export const getPracticesUrl = (slug: string = '') => `/practices${slug}`;
+export const getCommunityUrl = (slug: string = '') => `/community${slug}`;

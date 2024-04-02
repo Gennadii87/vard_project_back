@@ -182,8 +182,10 @@ class FileViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         if queryset.exists():
-            serializer = self.serializer_class(queryset, many=True, context={'request': request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.serializer_class(page, many=True, context={'request': request})
+                return self.get_paginated_response(serializer.data)
         else:
             serializer_fields = self.serializer_class().get_fields()
             fields = {}

@@ -124,4 +124,3 @@ class ReadCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReadComment
         fields = '__all__'
-

@@ -1,0 +1,10 @@
+.nav-items {
+	display: flex;
+	align-items: center;
+	column-gap: 15px;
+
+	& > li {
+		display: grid;
+		place-items: center;
+	}
+}
