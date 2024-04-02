@@ -1,9 +1,0 @@
-.sidebar {
-	position: relative;
-	z-index: 0;
-	min-height: calc(100vh - var(--navbar-height));
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: space-between;
-}
