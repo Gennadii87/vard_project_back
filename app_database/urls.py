@@ -16,7 +16,7 @@ router.register(r'file', views.FileViewSet)
 router.register(r'access', views.AccessViewSet)
 router.register(r'feedback', views.FeedbackViewSet)
 router.register(r'chart', views.ChartViewSet)
-router.register(r'dashboard', views.ChartViewSet)
+router.register(r'dashboard', views.DashboardViewSet)
 router.register(r'comment', views.CommentViewSet)
 router.register(r'read-comment', views.ReadCommentViewSet)
 
