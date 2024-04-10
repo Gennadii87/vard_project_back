@@ -1,5 +1,6 @@
 import MySQLdb
 
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets, permissions
@@ -10,6 +11,9 @@ from .serializers import DatabaseConnectionSerializer, SqlQuerySerializer
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+
+
+from .save_response import SqlSaveResponse
 
 
 class DatabaseConnectionViewSet(viewsets.ModelViewSet):
@@ -92,6 +96,15 @@ class SqlQueryViewSet(viewsets.ViewSet):
 
     # permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
+    @staticmethod
+    def dictfetchall(cursor):
+        """
+        Return all rows from a cursor as a dict.
+        Assume the column names are unique.
+        """
+        columns = [col[0] for col in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
     def list(self, request):
         fields = list(self.serializer_class().fields.keys())
         return Response({'fields': fields})
@@ -128,12 +141,18 @@ class SqlQueryViewSet(viewsets.ViewSet):
                     port=port
                 )
                 cursor = conn.cursor()
-                # Выполняем SQL-запрос
                 cursor.execute(sql_query)
-                results = cursor.fetchall()
+                results = self.dictfetchall(cursor)
                 cursor.close()
                 conn.close()
-                return Response(results, status=status.HTTP_200_OK)
+                response = {
+                    'results': results,
+                    'data_time': "{:%Y-%m-%d %H:%M:%S}".format(timezone.now())
+                }
+                sql_save_response = SqlSaveResponse()
+                sql_save_response.save_file(response, database)
+
+                return Response(response, status=status.HTTP_200_OK)
             except UserDataBaseProfile.DoesNotExist:
                 return Response({'error': 'Указанная база данных не найдена'}, status=status.HTTP_400_BAD_REQUEST)
             except MySQLdb.Error as exception:

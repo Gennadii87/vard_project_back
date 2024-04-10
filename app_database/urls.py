@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from app_mybase.urls import router_mybase
+from app_url_save_file.urls import router_url_save
 from . import views
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -8,6 +9,7 @@ from drf_yasg import openapi
 
 router = DefaultRouter()
 router.registry.extend(router_mybase.registry)
+router.registry.extend(router_url_save.registry)
 
 router.register(r'auth-login', views.LoginAuthTokenSet, basename='auth-login')
 router.register(r'account', views.UserAccountViewSet, basename='account')

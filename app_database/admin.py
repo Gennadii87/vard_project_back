@@ -12,7 +12,7 @@ class PasswordChangeDateInline(admin.StackedInline):
 
 class UserProxyAdmin(UserAdmin):
     inlines = [PasswordChangeDateInline]
-    list_display = ('username', 'first_name', 'email', 'get_last_password_change_date', 'is_staff')
+    list_display = ('id', 'username', 'first_name', 'email', 'get_last_password_change_date', 'is_staff')
 
     def get_last_password_change_date(self, obj):
         try:

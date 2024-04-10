@@ -51,7 +51,7 @@ class File(models.Model):
     )
 
     user_id = models.ForeignKey(UserProxy, on_delete=models.CASCADE)
-    place_id = models.CharField(choices=PLACE_TYPE_CHOICES, max_length=10)
+    place_id = models.CharField(choices=PLACE_TYPE_CHOICES, max_length=10, default='MF')
     type_id = models.CharField(choices=FILE_TYPE_CHOICES, max_length=10)
     data_creation = models.DateTimeField(default=timezone.now)
     data_change = models.DateTimeField(blank=True, null=True)
@@ -61,7 +61,7 @@ class File(models.Model):
     publish = models.IntegerField(choices=[(0, 'No'), (1, 'Yes')], default=0)
 
     def __str__(self):
-        return f'{self.name}.{self.type_id}'
+        return f'file_name: {self.name}  -  user: {self.user_id}'
 
 
 class Access(models.Model):

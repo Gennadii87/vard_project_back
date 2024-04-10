@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'app_database',
     'app_mybase',
+    'app_url_save_file',
     'drf_yasg',
 ]
 
