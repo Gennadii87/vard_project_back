@@ -1,0 +1,17 @@
+{
+    "results": [
+        {
+            "Database": "information_schema"
+        },
+        {
+            "Database": "mysql"
+        },
+        {
+            "Database": "performance_schema"
+        },
+        {
+            "Database": "sys"
+        }
+    ],
+    "data_time": "2024-05-19 14:56:18"
+}
