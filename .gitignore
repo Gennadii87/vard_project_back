@@ -26,3 +26,10 @@ dist-ssr
 venv/
 __pycache__/*
 /__pycache__/*
+../././__pycache__/*
+./__pycache__/*
+app_mybase/__pycache__/*
+app_url_save_file/migrations/__pycache__/*
+app_url_save_file/__pycache__/*
+app_mybase/migrations/__pycache__/*
+ app_mybase/__pycache__/*
